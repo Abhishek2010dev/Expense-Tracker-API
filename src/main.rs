@@ -1,5 +1,5 @@
+use anyhow::Context;
 use expense_tracker_api::{config::AppConfig, server};
-use std::process;
 use tracing::Level;
 
 #[tokio::main]
@@ -8,10 +8,7 @@ async fn main() -> anyhow::Result<()> {
         .with_max_level(Level::DEBUG)
         .init();
 
-    let config = AppConfig::new().unwrap_or_else(|err| {
-        tracing::error!("Failed to initialize AppConfig: {}", err);
-        process::exit(1);
-    });
+    let config = AppConfig::new().context("Failed to initialize AppConfig")?;
 
     server::setup_server(config).await?;
     return Ok(());
