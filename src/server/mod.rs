@@ -12,7 +12,7 @@ pub async fn setup_server(config: AppConfig) -> anyhow::Result<()> {
         .await
         .context("Failed to start tcp connection")?;
     let routes = setup_routes();
-    tracing::info!("Listening on http://localhost:3000");
+    tracing::info!("Listening on http://{addr}");
     axum::serve(listener, routes)
         .await
         .context("Failed to start axum server")?;
