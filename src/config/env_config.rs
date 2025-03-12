@@ -4,6 +4,7 @@ use std::borrow::Cow;
 #[derive(Debug, Clone)]
 pub struct EnvConfig {
     database_url: Cow<'static, str>,
+    host: Cow<'static, str>,
     access_secret: Cow<'static, str>,
     refresh_secret: Cow<'static, str>,
     redis_url: Cow<'static, str>,
@@ -14,6 +15,7 @@ impl EnvConfig {
     pub fn new<P: EnvProvider>(provider: P) -> Result<Self, ConfigError> {
         Ok(Self {
             database_url: provider.get("DATABASE_URL")?,
+            host: provider.get("HOST")?,
             access_secret: provider.get("ACCESS_SECRET")?,
             refresh_secret: provider.get("REFRESH_SECRET")?,
             redis_url: provider.get("REDIS_URL")?,
@@ -40,6 +42,10 @@ impl Config for EnvConfig {
 
     fn redis_url(&self) -> &str {
         &self.redis_url
+    }
+
+    fn host(&self) -> &str {
+        &self.host
     }
 
     fn port(&self) -> u16 {

@@ -7,5 +7,6 @@ pub trait Config {
     fn access_secret(&self) -> &str;
     fn refresh_secret(&self) -> &str;
     fn redis_url(&self) -> &str;
+    fn host(&self) -> &str;
     fn port(&self) -> u16;
 }
