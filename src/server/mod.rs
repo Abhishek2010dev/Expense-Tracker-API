@@ -4,9 +4,9 @@ use anyhow::{Context, Ok};
 use routes::setup_routes;
 use tokio::net::TcpListener;
 
-use crate::config::AppConfig;
+use crate::config::Config;
 
-pub async fn setup_server(config: AppConfig) -> anyhow::Result<()> {
+pub async fn setup_server<C: Config>(config: C) -> anyhow::Result<()> {
     let addr = format!("localhost:{}", config.port());
     let listener = TcpListener::bind(&addr)
         .await
