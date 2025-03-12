@@ -2,7 +2,7 @@ use anyhow::Context;
 use dotenv::dotenv;
 use expense_tracker_api::{
     config::{env_config::EnvConfig, env_provider::StdEnv},
-    server,
+    server::Server,
 };
 use tracing::Level;
 use tracing_subscriber::fmt::format::FmtSpan;
@@ -18,6 +18,7 @@ async fn main() -> anyhow::Result<()> {
 
     let config = EnvConfig::new(StdEnv).context("Failed to initialize AppConfig")?;
 
-    server::setup_server(config).await?;
+    let server = Server::new(config);
+    server.run().await?;
     return Ok(());
 }
