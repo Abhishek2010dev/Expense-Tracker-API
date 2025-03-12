@@ -1,15 +1,15 @@
 pub mod error;
 
-use std::env;
+use std::{borrow::Cow, env};
 
 use error::ConfigError;
 
 #[derive(Debug, Clone)]
 pub struct AppConfig {
-    database_url: String,
-    access_secret: String,
-    refresh_secret: String,
-    redis_url: String,
+    database_url: Cow<'static, str>,
+    access_secret: Cow<'static, str>,
+    refresh_secret: Cow<'static, str>,
+    redis_url: Cow<'static, str>,
     port: u16,
 }
 
@@ -47,6 +47,8 @@ impl AppConfig {
     }
 }
 
-fn get_env(var: &'static str) -> Result<String, ConfigError> {
-    env::var(var).map_err(|_| ConfigError::MissingVar(var))
+fn get_env(var: &'static str) -> Result<Cow<'static, str>, ConfigError> {
+    env::var(var)
+        .map(Cow::Owned)
+        .map_err(|_| ConfigError::MissingVar(var))
 }
