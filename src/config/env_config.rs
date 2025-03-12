@@ -1,10 +1,8 @@
-use std::{borrow::Cow, env};
-
 use super::{Config, env_provider::EnvProvider, error::ConfigError};
+use std::borrow::Cow;
 
 #[derive(Debug, Clone)]
-pub struct EnvConfig<P: EnvProvider> {
-    provider: P,
+pub struct EnvConfig {
     database_url: Cow<'static, str>,
     access_secret: Cow<'static, str>,
     refresh_secret: Cow<'static, str>,
@@ -12,8 +10,8 @@ pub struct EnvConfig<P: EnvProvider> {
     port: u16,
 }
 
-impl<P: EnvProvider> EnvConfig<P> {
-    pub fn new(provider: P) -> Result<Self, ConfigError> {
+impl EnvConfig {
+    pub fn new<P: EnvProvider>(provider: P) -> Result<Self, ConfigError> {
         Ok(Self {
             database_url: provider.get("DATABASE_URL")?,
             access_secret: provider.get("ACCESS_SECRET")?,
@@ -23,12 +21,11 @@ impl<P: EnvProvider> EnvConfig<P> {
                 .get("PORT")?
                 .parse::<u16>()
                 .map_err(ConfigError::InvalidPort)?,
-            provider,
         })
     }
 }
 
-impl<P: EnvProvider> Config for EnvConfig<P> {
+impl Config for EnvConfig {
     fn database_url(&self) -> &str {
         &self.database_url
     }
