@@ -20,7 +20,7 @@ where
     redis: R,
 }
 
-impl<C: Config + std::marker::Sync> Server<C, PgDatabase, RedisClient> {
+impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient> {
     pub async fn new(config: C) -> anyhow::Result<Self> {
         let db = PgDatabase::connect(config.database_url())
             .await

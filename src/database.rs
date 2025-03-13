@@ -1,8 +1,10 @@
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use async_trait::async_trait;
 use sqlx::{Database, Pool, Postgres, postgres::PgPoolOptions};
 
+#[async_trait]
 pub trait DatabaseConnection<DB: Database> {
     async fn connect(database_url: &str) -> Result<Self>
     where
@@ -13,6 +15,7 @@ pub trait DatabaseConnection<DB: Database> {
 
 pub struct PgDatabase(Pool<Postgres>);
 
+#[async_trait]
 impl DatabaseConnection<Postgres> for PgDatabase {
     async fn connect(database_url: &str) -> Result<Self>
     where

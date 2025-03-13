@@ -1,8 +1,10 @@
 use std::time::Duration;
 
 use anyhow::{Context, Ok, Result};
-use fred::prelude::{Builder, Client, ClientLike, Config, EventInterface, TcpConfig};
+use async_trait::async_trait;
+use fred::prelude::{Builder, Client, ClientLike, Config, TcpConfig};
 
+#[async_trait]
 pub trait CacheConnection {
     async fn connect(url: &str) -> Result<Self>
     where
@@ -13,6 +15,7 @@ pub trait CacheConnection {
 
 pub struct RedisClient(Client);
 
+#[async_trait]
 impl CacheConnection for RedisClient {
     async fn connect(url: &str) -> Result<Self>
     where
