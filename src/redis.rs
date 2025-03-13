@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use anyhow::{Context, Ok, Result};
 use fred::prelude::{Builder, Client, ClientLike, Config, EventInterface, TcpConfig};
@@ -11,7 +11,7 @@ pub trait CacheConnection {
     fn client(&self) -> &Client;
 }
 
-pub struct RedisClient(Arc<Client>);
+pub struct RedisClient(Client);
 
 impl CacheConnection for RedisClient {
     async fn connect(url: &str) -> Result<Self>
@@ -35,7 +35,7 @@ impl CacheConnection for RedisClient {
             .context("Failed to run `init` function for redis")?;
 
         tracing::debug!("Connected to redis");
-        Ok(Self(Arc::new(client)))
+        Ok(Self(client))
     }
 
     fn client(&self) -> &Client {

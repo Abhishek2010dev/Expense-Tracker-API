@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use anyhow::{Context, Result};
 use sqlx::{Database, Pool, Postgres, postgres::PgPoolOptions};
@@ -11,7 +11,7 @@ pub trait DatabaseConnection<DB: Database> {
     fn pool(&self) -> &Pool<DB>;
 }
 
-pub struct PgDatabase(Arc<Pool<Postgres>>);
+pub struct PgDatabase(Pool<Postgres>);
 
 impl DatabaseConnection<Postgres> for PgDatabase {
     async fn connect(database_url: &str) -> Result<Self>
@@ -25,7 +25,7 @@ impl DatabaseConnection<Postgres> for PgDatabase {
             .await
             .context("can't connect to database")?;
         tracing::debug!("Connected to redis");
-        Ok(Self(Arc::new(pool)))
+        Ok(Self(pool))
     }
 
     fn pool(&self) -> &Pool<Postgres> {
