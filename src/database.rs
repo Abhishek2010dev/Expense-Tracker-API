@@ -1,6 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use sqlx::{Database, Pool, Postgres, postgres::PgPoolOptions};
 
 pub trait DatabaseConnection<DB: Database> {
@@ -23,7 +23,7 @@ impl DatabaseConnection<Postgres> for PgDatabase {
             .acquire_timeout(Duration::from_secs(3))
             .connect(database_url)
             .await
-            .expect("can't connect to database");
+            .context("can't connect to database")?;
         Ok(Self(Arc::new(pool)))
     }
 
