@@ -24,6 +24,7 @@ impl DatabaseConnection<Postgres> for PgDatabase {
             .connect(database_url)
             .await
             .context("can't connect to database")?;
+        tracing::debug!("Connected to redis");
         Ok(Self(Arc::new(pool)))
     }
 
