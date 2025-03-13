@@ -37,7 +37,7 @@ impl CacheConnection for RedisClient {
             .await
             .context("Failed to create Redis client")?;
 
-        tracing::debug!("Connected to redis");
+        tracing::info!("Connected to redis");
         Ok(Self(client))
     }
 
