@@ -1,14 +1,5 @@
-use super::{env_provider::EnvProvider, error::ConfigError};
+use super::{Config, env_provider::EnvProvider, error::ConfigError};
 use std::borrow::Cow;
-
-pub trait Config {
-    fn database_url(&self) -> &str;
-    fn access_secret(&self) -> &str;
-    fn refresh_secret(&self) -> &str;
-    fn redis_url(&self) -> &str;
-    fn host(&self) -> &str;
-    fn port(&self) -> u16;
-}
 
 #[derive(Debug, Clone)]
 pub struct EnvConfig {
