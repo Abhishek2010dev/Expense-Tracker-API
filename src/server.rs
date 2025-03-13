@@ -1,7 +1,7 @@
 use anyhow::{Context, Ok};
 use axum::Router;
 use sqlx::Postgres;
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, signal};
 
 use crate::{
     config::Config,
@@ -19,7 +19,8 @@ where
     db: D,
     redis: R,
 }
-impl<C: Config> Server<C, PgDatabase, RedisClient> {
+
+impl<C: Config + std::marker::Sync> Server<C, PgDatabase, RedisClient> {
     pub async fn new(config: C) -> anyhow::Result<Self> {
         let db = PgDatabase::connect(config.database_url())
             .await
@@ -37,9 +38,32 @@ impl<C: Config> Server<C, PgDatabase, RedisClient> {
             .context("Failed to start tcp connection")?;
         let router = Router::new();
         tracing::info!("Listening on http://{addr}");
+        let shutdown = Self::shutdown_signal();
         axum::serve(listener, router)
+            .with_graceful_shutdown(shutdown)
             .await
             .context("Failed to start axum server")?;
         Ok(())
+    }
+
+    async fn shutdown_signal() {
+        let ctrl_c = async {
+            signal::ctrl_c()
+                .await
+                .expect("failed to install Ctrl+C handler");
+        };
+        #[cfg(unix)]
+        let terminate = async {
+            signal::unix::signal(signal::unix::SignalKind::terminate())
+                .expect("failed to install signal handler")
+                .recv()
+                .await;
+        };
+        #[cfg(not(unix))]
+        let terminate = std::future::pending::<()>();
+        tokio::select! {
+            _ = ctrl_c => {},
+            _ = terminate => {},
+        }
     }
 }
