@@ -18,7 +18,9 @@ async fn main() -> anyhow::Result<()> {
 
     let config = EnvConfig::new(StdEnv).context("Failed to initialize AppConfig")?;
 
-    let server = Server::new(config);
-    server.run().await?;
+    let server = Server::new(config)
+        .await
+        .context("Failed to create Server")?;
+    server.run().await.context("Failed to run server")?;
     return Ok(());
 }
