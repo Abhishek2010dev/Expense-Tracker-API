@@ -1,3 +1,5 @@
+mod migration;
+
 use std::time::Duration;
 
 use anyhow::{Context, Result};
@@ -28,6 +30,12 @@ impl DatabaseConnection<Postgres> for PgDatabase {
             .await
             .context("can't connect to database")?;
         tracing::info!("Successfully connected to PostgreSQL");
+
+        // migration
+        sqlx::migrate!()
+            .run(&pool)
+            .await
+            .context("Failed to run database migration")?;
         Ok(Self(pool))
     }
 
