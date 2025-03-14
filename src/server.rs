@@ -2,6 +2,7 @@ use anyhow::{Context, Ok};
 use axum::Router;
 use sqlx::Postgres;
 use tokio::{net::TcpListener, signal};
+use tower_http::trace::TraceLayer;
 
 use crate::{
     config::Config,
@@ -36,7 +37,7 @@ impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient>
         let listener = TcpListener::bind(&addr)
             .await
             .context("Failed to start tcp connection")?;
-        let router = Router::new();
+        let router = Router::new().layer(TraceLayer::new_for_http());
         tracing::info!("Listening on http://{addr}");
         let shutdown = Self::shutdown_signal();
         axum::serve(listener, router)
