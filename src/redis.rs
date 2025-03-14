@@ -37,11 +37,21 @@ impl CacheConnection for RedisClient {
             .await
             .context("Failed to create Redis client")?;
 
-        tracing::info!("Connected to redis");
+        tracing::info!("Successfully connected to redis");
         Ok(Self(client))
     }
 
     fn client(&self) -> &Client {
         &self.0
+    }
+}
+
+impl Drop for RedisClient {
+    fn drop(&mut self) {
+        if self.0.is_connected() {
+            tracing::info!("Disconnecting from Redis...");
+        } else {
+            tracing::info!("Redis client already disconnected.");
+        }
     }
 }

@@ -35,3 +35,13 @@ impl DatabaseConnection<Postgres> for PgDatabase {
         &self.0
     }
 }
+
+impl Drop for PgDatabase {
+    fn drop(&mut self) {
+        if self.0.is_closed() {
+            tracing::info!("PostgreSQL connection was already closed.");
+        } else {
+            tracing::info!("Closing PostgreSQL connection.");
+        }
+    }
+}
