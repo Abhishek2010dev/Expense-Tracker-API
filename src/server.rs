@@ -37,14 +37,16 @@ impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient>
         let listener = TcpListener::bind(&addr)
             .await
             .context("Failed to start tcp connection")?;
-        let router = Router::new().layer(TraceLayer::new_for_http());
         tracing::info!("Listening on http://{addr}");
-        let shutdown = Self::shutdown_signal();
-        axum::serve(listener, router)
-            .with_graceful_shutdown(shutdown)
+        axum::serve(listener, self.build_routes())
+            .with_graceful_shutdown(Self::shutdown_signal())
             .await
             .context("Failed to start axum server")?;
         Ok(())
+    }
+
+    fn build_routes(&self) -> Router {
+        Router::new().layer(TraceLayer::new_for_http())
     }
 
     async fn shutdown_signal() {
