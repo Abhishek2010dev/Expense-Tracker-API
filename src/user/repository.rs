@@ -14,6 +14,12 @@ pub struct UserRespositoryImpl {
     pool: Pool<Postgres>,
 }
 
+impl UserRespositoryImpl {
+    pub fn new(pool: Pool<Postgres>) -> Self {
+        Self { pool }
+    }
+}
+
 #[async_trait]
 impl UserRespository for UserRespositoryImpl {
     async fn create(&self, payload: CreateUserPayload) -> Result<User> {
