@@ -6,7 +6,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::{
     config::Config,
-    database::{DatabaseConnection, PgDatabase, migration::PgMigrator},
+    database::{DatabaseConnection, PgDatabase},
     redis::{CacheConnection, RedisClient},
 };
 
@@ -23,7 +23,7 @@ where
 
 impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient> {
     pub async fn new(config: C) -> anyhow::Result<Self> {
-        let db = PgDatabase::connect(config.database_url(), &PgMigrator)
+        let db = PgDatabase::connect(config.database_url())
             .await
             .context("Failed to create PgDatabase")?;
         let redis = RedisClient::connect(config.redis_url())

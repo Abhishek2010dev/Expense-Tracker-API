@@ -1,15 +1,12 @@
-pub mod migration;
-
 use std::time::Duration;
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use migration::Migrator;
 use sqlx::{Database, Pool, Postgres, postgres::PgPoolOptions};
 
 #[async_trait]
 pub trait DatabaseConnection<DB: Database> {
-    async fn connect(database_url: &str, migrator: &dyn Migrator<DB>) -> Result<Self>
+    async fn connect(database_url: &str) -> Result<Self>
     where
         Self: Sized;
 
@@ -20,7 +17,7 @@ pub struct PgDatabase(Pool<Postgres>);
 
 #[async_trait]
 impl DatabaseConnection<Postgres> for PgDatabase {
-    async fn connect(database_url: &str, migrator: &dyn Migrator<Postgres>) -> Result<Self>
+    async fn connect(database_url: &str) -> Result<Self>
     where
         Self: Sized,
     {
@@ -32,7 +29,10 @@ impl DatabaseConnection<Postgres> for PgDatabase {
             .context("can't connect to database")?;
         tracing::info!("Successfully connected to PostgreSQL");
 
-        migrator.migrate(&pool).await?;
+        sqlx::migrate!()
+            .run(&pool)
+            .await
+            .context("Failed to run migration")?;
 
         Ok(Self(pool))
     }
