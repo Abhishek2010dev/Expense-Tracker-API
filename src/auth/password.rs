@@ -24,6 +24,11 @@ impl<'a> PasswordService for PasswordServiceImpl<'a> {
     }
 
     fn verify_password(&self, password: &str, hash: &str) -> bool {
-        todo!()
+        PasswordHash::new(hash)
+            .and_then(|parsed_hash| {
+                self.argon2
+                    .verify_password(password.as_bytes(), &parsed_hash)
+            })
+            .is_ok()
     }
 }
