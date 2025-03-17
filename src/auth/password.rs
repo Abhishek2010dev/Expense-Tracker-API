@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::{Context, Result, anyhow};
 use argon2::{
     Argon2,
@@ -11,7 +13,7 @@ pub trait PasswordService {
 
 #[derive(Default)]
 pub struct PasswordServiceImpl<'a> {
-    argon2: Argon2<'a>,
+    argon2: Arc<Argon2<'a>>,
 }
 
 impl<'a> PasswordService for PasswordServiceImpl<'a> {
