@@ -1,19 +1,21 @@
+use std::sync::Arc;
+
 use anyhow::{Context, Result, anyhow};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{
     DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
 };
 
-use super::claims::{self, Claims};
+use super::claims::Claims;
 
 pub struct JwtService {
-    secret_key: Vec<u8>,
+    secret_key: Arc<Vec<u8>>,
 }
 
 impl JwtService {
     pub fn new(secret_key: &str) -> Self {
         return Self {
-            secret_key: secret_key.as_bytes().to_vec(),
+            secret_key: Arc::new(secret_key.as_bytes().to_vec()),
         };
     }
 
@@ -56,16 +58,10 @@ impl JwtService {
     }
 
     pub fn validate_token(&self, token: &str) -> Result<i32> {
-        match decode::<Claims>(
+        decode::<Claims>(
             token,
             &DecodingKey::from_secret(&self.secret_key),
             &Validation::new(jsonwebtoken::Algorithm::HS256),
-        ) {
-            Ok(data) => Ok(data.claims.sub),
-            Err(err) if matches!(err.kind(), ErrorKind::ExpiredSignature) => {
-                Err(anyhow!("Token has expired"))
-            }
-            Err(_) => Err(anyhow!("Invalid token")),
-        }
+        )
     }
 }
