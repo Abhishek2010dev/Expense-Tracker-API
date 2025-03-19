@@ -63,5 +63,12 @@ impl JwtService {
             &DecodingKey::from_secret(&self.secret_key),
             &Validation::new(jsonwebtoken::Algorithm::HS256),
         )
+        .map(|data| data.claims.sub)
+        .map_err(|err| match err.kind() {
+            ErrorKind::ExpiredSignature => anyhow!("Token has expired"),
+            ErrorKind::InvalidToken => anyhow!("Invalid token format"),
+            ErrorKind::InvalidSignature => anyhow!("Invalid token signature"),
+            _ => anyhow!("Token validation failed"),
+        })
     }
 }
