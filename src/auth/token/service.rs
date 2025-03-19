@@ -33,4 +33,23 @@ impl JwtService {
         )
         .context("Failed to encode token")
     }
+
+    pub fn generate_refresh_token(&self, user_id: i32) -> Result<String> {
+        let expiration = Utc::now()
+            .checked_add_signed(Duration::days(7))
+            .context("Invalid time")?
+            .timestamp() as usize;
+
+        let claims = Claims {
+            sub: user_id,
+            exp: expiration,
+        };
+
+        encode(
+            &Header::new(jsonwebtoken::Algorithm::HS256),
+            &claims,
+            &EncodingKey::from_secret(&self.secret_key),
+        )
+        .context("Failed to encode token")
+    }
 }
