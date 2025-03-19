@@ -35,7 +35,7 @@ impl JwtService {
             &claims,
             &EncodingKey::from_secret(&self.secret_key),
         )
-        .context("Failed to encode token")
+        .context("Failed to encode refresh token")
     }
 
     pub fn generate_refresh_token(&self, user_id: i32) -> Result<String> {
@@ -54,7 +54,7 @@ impl JwtService {
             &claims,
             &EncodingKey::from_secret(&self.secret_key),
         )
-        .context("Failed to encode token")
+        .context("Failed to encode refresh token")
     }
 
     pub fn validate_token(&self, token: &str) -> Result<i32> {
