@@ -1,2 +1,2 @@
-mod claims;
+pub mod claims;
 pub mod service;

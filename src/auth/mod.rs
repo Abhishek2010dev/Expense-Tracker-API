@@ -1,2 +1,2 @@
 mod password;
-mod token;
+pub mod token;

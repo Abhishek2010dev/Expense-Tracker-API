@@ -57,13 +57,13 @@ impl JwtService {
         .context("Failed to encode refresh token")
     }
 
-    pub fn validate_token(&self, token: &str) -> Result<i32> {
+    pub fn validate_token(&self, token: &str) -> Result<Claims> {
         decode::<Claims>(
             token,
             &DecodingKey::from_secret(&self.secret_key),
             &Validation::new(jsonwebtoken::Algorithm::HS256),
         )
-        .map(|data| data.claims.sub)
+        .map(|data| data.claims)
         .map_err(|err| match err.kind() {
             ErrorKind::ExpiredSignature => anyhow!("Token has expired"),
             ErrorKind::InvalidToken => anyhow!("Invalid token format"),
