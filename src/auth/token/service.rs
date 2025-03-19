@@ -54,18 +54,12 @@ impl JwtService {
     }
 
     pub fn validate_token(&self, token: &str) -> Result<i32> {
-        let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-        let token_value = decode::<Claims>(
+        decode::<Claims>(
             token,
             &DecodingKey::from_secret(&self.secret_key),
-            &validation,
+            &Validation::new(jsonwebtoken::Algorithm::HS256),
         )
-        .context("Invalid Token")?;
-
-        if token_value.claims.exp < Utc::now().timestamp() as usize {
-            return Err(anyhow!("Invalid Token"));
-        }
-
-        return Ok(token_value.claims.sub);
+        .map(|data| data.claims.sub)
+        .context("Invalid Token")
     }
 }
