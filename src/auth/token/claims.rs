@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-struct Claims {
-    sub: i32,
-    exp: usize,
+pub struct Claims {
+    pub sub: i32,
+    pub exp: usize,
 }
