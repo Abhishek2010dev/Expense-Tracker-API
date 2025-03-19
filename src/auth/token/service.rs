@@ -1,6 +1,8 @@
 use anyhow::{Context, Result, anyhow};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use jsonwebtoken::{
+    DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
+};
 
 use super::claims::{self, Claims};
 
@@ -54,12 +56,16 @@ impl JwtService {
     }
 
     pub fn validate_token(&self, token: &str) -> Result<i32> {
-        decode::<Claims>(
+        match decode::<Claims>(
             token,
             &DecodingKey::from_secret(&self.secret_key),
             &Validation::new(jsonwebtoken::Algorithm::HS256),
-        )
-        .map(|data| data.claims.sub)
-        .context("Invalid Token")
+        ) {
+            Ok(data) => Ok(data.claims.sub),
+            Err(err) if matches!(err.kind(), ErrorKind::ExpiredSignature) => {
+                Err(anyhow!("Token has expired"))
+            }
+            Err(_) => Err(anyhow!("Invalid token")),
+        }
     }
 }
