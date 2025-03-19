@@ -13,9 +13,9 @@ pub struct JwtService {
 }
 
 impl JwtService {
-    pub fn new(secret_key: &str) -> Self {
+    pub fn new(secret_key: impl Into<Vec<u8>>) -> Self {
         return Self {
-            secret_key: Arc::new(secret_key.as_bytes().to_vec()),
+            secret_key: Arc::new(secret_key.into()),
         };
     }
 
