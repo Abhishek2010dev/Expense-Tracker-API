@@ -1,8 +1,8 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{EncodingKey, Header, encode};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 
-use super::claims::Claims;
+use super::claims::{self, Claims};
 
 pub struct JwtService {
     secret_key: Vec<u8>,
@@ -51,5 +51,21 @@ impl JwtService {
             &EncodingKey::from_secret(&self.secret_key),
         )
         .context("Failed to encode token")
+    }
+
+    pub fn validate_token(&self, token: &str) -> Result<i32> {
+        let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
+        let token_value = decode::<Claims>(
+            token,
+            &DecodingKey::from_secret(&self.secret_key),
+            &validation,
+        )
+        .context("Invalid Token")?;
+
+        if token_value.claims.exp < Utc::now().timestamp() as usize {
+            return Err(anyhow!("Invalid Token"));
+        }
+
+        return Ok(token_value.claims.sub);
     }
 }
