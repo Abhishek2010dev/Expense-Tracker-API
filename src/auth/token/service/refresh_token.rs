@@ -21,15 +21,11 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         };
     }
 
-    pub async fn generate_access_token(&self, user_id: i32) -> Result<String> {
-        let expiration = Utc::now()
-            .checked_add_signed(Duration::minutes(15))
-            .context("Invalid time")?
-            .timestamp() as usize;
-
+    pub async fn generate_token(&self, user_id: i32) -> Result<String> {
+        let duration = Duration::days(7);
         let claims = Claims {
             sub: user_id,
-            exp: expiration,
+            exp: Self::generate_expiration(duration)?,
         };
 
         let token = encode(
@@ -40,15 +36,15 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         .context("Failed to encode refresh token")?;
 
         self.repository
-            .store_refresh_token(user_id, &token, Duration::days(7).num_seconds())
+            .store_refresh_token(user_id, &token, duration.num_seconds())
             .await?;
 
         Ok(token)
     }
 
-    fn generate_expiration() -> anyhow::Result<usize> {
+    fn generate_expiration(duration: Duration) -> anyhow::Result<usize> {
         Utc::now()
-            .checked_add_signed(Duration::minutes(15))
+            .checked_add_signed(duration)
             .map(|it| it.timestamp() as usize)
             .context("Invalid time")
     }
