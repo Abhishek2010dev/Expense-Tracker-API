@@ -6,6 +6,8 @@ use fred::{
 };
 use std::sync::Arc;
 
+use crate::auth::token::hash::hash_token;
+
 #[async_trait]
 pub trait RefreshTokenRepository {
     // ttl expiration time for token in second
@@ -30,7 +32,7 @@ impl RefreshTokenRepository for RedisRefreshTokenRepository {
         self.client
             .set(
                 format!("refresh_token:{}", user_id),
-                token,
+                hash_token(token),
                 Some(Expiration::EX(ttl)),
                 None,
                 false,
