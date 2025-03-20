@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::{Context, Ok, Result};
 use async_trait::async_trait;
@@ -10,10 +10,10 @@ pub trait CacheConnection {
     where
         Self: Sized;
 
-    fn client(&self) -> &Client;
+    fn client(&self) -> Arc<Client>;
 }
 
-pub struct RedisClient(Client);
+pub struct RedisClient(Arc<Client>);
 
 #[async_trait]
 impl CacheConnection for RedisClient {
@@ -38,11 +38,11 @@ impl CacheConnection for RedisClient {
             .context("Failed to create Redis client")?;
 
         tracing::info!("Successfully connected to redis");
-        Ok(Self(client))
+        Ok(Self(Arc::new(client)))
     }
 
-    fn client(&self) -> &Client {
-        &self.0
+    fn client(&self) -> Arc<Client> {
+        self.0.clone()
     }
 }
 
