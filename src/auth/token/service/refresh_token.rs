@@ -27,6 +27,7 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
     pub async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
         let duration = Duration::days(7);
         let claims = Claims::new(user_id, duration)?;
+
         let token = encode(
             &Header::new(jsonwebtoken::Algorithm::HS256),
             &claims,
