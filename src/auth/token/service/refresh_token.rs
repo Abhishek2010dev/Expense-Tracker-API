@@ -1,17 +1,14 @@
 use anyhow::Context;
 use std::sync::Arc;
 
-use chrono::{Duration, Utc};
-use jsonwebtoken::{
-    DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
-};
+use chrono::Duration;
+use jsonwebtoken::{EncodingKey, Header, encode};
 
 use crate::auth::token::{
-    self,
     claims::Claims,
     error::TokenValidationError,
     repository::refresh_token::RefreshTokenRepository,
-    utils::{decode_token, hash_token},
+    utils::{decode_token, generate_expiration, hash_token},
 };
 
 pub struct RefreshTokenService<R: RefreshTokenRepository> {
@@ -31,7 +28,7 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         let duration = Duration::days(7);
         let claims = Claims {
             sub: user_id,
-            exp: Self::generate_expiration(duration)?,
+            exp: generate_expiration(duration)?,
         };
 
         let token = encode(
@@ -63,12 +60,5 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         }
 
         Ok(claims)
-    }
-
-    fn generate_expiration(duration: Duration) -> anyhow::Result<usize> {
-        Utc::now()
-            .checked_add_signed(duration)
-            .map(|it| it.timestamp() as usize)
-            .context("Invalid time")
     }
 }

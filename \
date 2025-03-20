@@ -26,7 +26,7 @@ pub fn decode_token(secret_key: &[u8], token: &str) -> Result<Claims, TokenValid
     })
 }
 
-pub fn generate_expiration(duration: Duration) -> anyhow::Result<usize> {
+fn generate_expiration(duration: Duration) -> anyhow::Result<usize> {
     Utc::now()
         .checked_add_signed(duration)
         .map(|it| it.timestamp() as usize)
