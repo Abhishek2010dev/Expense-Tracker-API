@@ -451,6 +451,7 @@ dependencies = [
  "fred",
  "jsonwebtoken",
  "serde",
+ "sha2",
  "sqlx",
  "thiserror",
  "tokio",
