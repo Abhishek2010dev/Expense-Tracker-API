@@ -7,8 +7,11 @@ use jsonwebtoken::{
 };
 
 use crate::auth::token::{
-    self, claims::Claims, error::TokenValidationError, hash::hash_token,
+    self,
+    claims::Claims,
+    error::TokenValidationError,
     repository::refresh_token::RefreshTokenRepository,
+    utils::{decode_token, hash_token},
 };
 
 pub struct RefreshTokenService<R: RefreshTokenRepository> {
@@ -46,19 +49,7 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
     }
 
     pub async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError> {
-        let claims = decode::<Claims>(
-            token,
-            &DecodingKey::from_secret(&self.secret_key),
-            &Validation::new(jsonwebtoken::Algorithm::HS256),
-        )
-        .map(|data| data.claims)
-        .map_err(|err| match err.kind() {
-            ErrorKind::ExpiredSignature => TokenValidationError::Expired,
-            ErrorKind::InvalidToken => TokenValidationError::InvalidFormat,
-            ErrorKind::InvalidSignature => TokenValidationError::InvalidSignature,
-            _ => TokenValidationError::ValidationFailed,
-        })?;
-
+        let claims = decode_token(&self.secret_key, token)?;
         let redis_token = self
             .repository
             .get_refresh_token(claims.sub)

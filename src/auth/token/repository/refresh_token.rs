@@ -6,7 +6,7 @@ use fred::{
 };
 use std::sync::Arc;
 
-use crate::auth::token::hash::hash_token;
+use crate::auth::token::utils::hash_token;
 
 #[async_trait]
 pub trait RefreshTokenRepository {
