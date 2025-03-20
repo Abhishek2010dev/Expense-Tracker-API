@@ -49,10 +49,9 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
             .get_refresh_token(claims.sub)
             .await
             .map_err(|_| TokenValidationError::ValidationFailed)?
-            .map(|v| hash_token(&v))
             .ok_or(TokenValidationError::RedisTokenNull)?;
 
-        if redis_token != token {
+        if redis_token != hash_token(token) {
             return Err(TokenValidationError::ValidationFailed);
         }
 
