@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Ok, Result};
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
@@ -21,7 +21,7 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         };
     }
 
-    pub fn generate_access_token(&self, user_id: i32) -> Result<String> {
+    pub async fn generate_access_token(&self, user_id: i32) -> Result<String> {
         let expiration = Utc::now()
             .checked_add_signed(Duration::minutes(15))
             .context("Invalid time")?
@@ -39,6 +39,17 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         )
         .context("Failed to encode refresh token")?;
 
-        todo!()
+        self.repository
+            .store_refresh_token(user_id, &token, Duration::days(7).num_seconds())
+            .await?;
+
+        Ok(token)
+    }
+
+    fn generate_expiration() -> anyhow::Result<usize> {
+        Utc::now()
+            .checked_add_signed(Duration::minutes(15))
+            .map(|it| it.timestamp() as usize)
+            .context("Invalid time")
     }
 }
