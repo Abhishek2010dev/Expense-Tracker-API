@@ -1,4 +1,4 @@
-use anyhow::{Context, Ok, Result, anyhow};
+use anyhow::Context;
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
@@ -7,7 +7,8 @@ use jsonwebtoken::{
 };
 
 use crate::auth::token::{
-    self, claims::Claims, hash::hash_token, repository::refresh_token::RefreshTokenRepository,
+    self, claims::Claims, error::TokenValidationError, hash::hash_token,
+    repository::refresh_token::RefreshTokenRepository,
 };
 
 pub struct RefreshTokenService<R: RefreshTokenRepository> {
@@ -23,7 +24,7 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         };
     }
 
-    pub async fn generate_token(&self, user_id: i32) -> Result<String> {
+    pub async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
         let duration = Duration::days(7);
         let claims = Claims {
             sub: user_id,
@@ -44,30 +45,33 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         Ok(token)
     }
 
-    pub async fn validate_token(&self, token: &str) -> Result<Claims> {
-        let cliams = decode::<Claims>(
+    pub async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError> {
+        let claims = decode::<Claims>(
             token,
             &DecodingKey::from_secret(&self.secret_key),
             &Validation::new(jsonwebtoken::Algorithm::HS256),
         )
         .map(|data| data.claims)
         .map_err(|err| match err.kind() {
-            ErrorKind::ExpiredSignature => anyhow!("Token has expired"),
-            ErrorKind::InvalidToken => anyhow!("Invalid token format"),
-            ErrorKind::InvalidSignature => anyhow!("Invalid token signature"),
-            _ => anyhow!("Token validation failed"),
+            ErrorKind::ExpiredSignature => TokenValidationError::Expired,
+            ErrorKind::InvalidToken => TokenValidationError::InvalidFormat,
+            ErrorKind::InvalidSignature => TokenValidationError::InvalidSignature,
+            _ => TokenValidationError::ValidationFailed,
         })?;
 
         let redis_token = self
             .repository
-            .get_refresh_token(cliams.sub)
-            .await?
+            .get_refresh_token(claims.sub)
+            .await
+            .map_err(|_| TokenValidationError::ValidationFailed)?
             .map(|v| hash_token(&v))
-            .context("Redis token is null")?;
+            .ok_or(TokenValidationError::RedisTokenNull)?;
 
-        if matches!(redis_token, token) {}
+        if redis_token != token {
+            return Err(TokenValidationError::ValidationFailed);
+        }
 
-        todo!()
+        Ok(claims)
     }
 
     fn generate_expiration(duration: Duration) -> anyhow::Result<usize> {
