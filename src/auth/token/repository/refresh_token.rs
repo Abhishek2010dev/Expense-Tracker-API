@@ -38,9 +38,14 @@ impl RefreshTokenRepository for RedisRefreshTokenRepository {
             .await
             .context(format!("Failed to store refresh token with id: {user_id}"))
     }
+
     async fn get_refresh_token(&self, user_id: i32) -> Result<Option<String>> {
-        todo!()
+        self.client
+            .get(format!("refresh_token:{}", user_id))
+            .await
+            .context(format!("Failed to get refresh token with id: {}", user_id))
     }
+
     async fn delete_refresh_token(&self, user_id: i32) -> Result<()> {
         todo!()
     }
