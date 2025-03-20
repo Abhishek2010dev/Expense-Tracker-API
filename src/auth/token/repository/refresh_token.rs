@@ -36,7 +36,7 @@ impl RefreshTokenRepository for RedisRefreshTokenRepository {
                 false,
             )
             .await
-            .context("error while storing token in redis")
+            .context(format!("Failed to store refresh token with id: {user_id}"))
     }
     async fn get_refresh_token(&self, user_id: i32) -> Result<Option<String>> {
         todo!()
