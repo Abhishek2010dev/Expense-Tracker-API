@@ -1,4 +1,4 @@
-use anyhow::{Context, Ok, Result};
+use anyhow::{Context, Ok, Result, anyhow};
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
@@ -6,7 +6,9 @@ use jsonwebtoken::{
     DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
 };
 
-use crate::auth::token::{claims::Claims, repository::refresh_token::RefreshTokenRepository};
+use crate::auth::token::{
+    self, claims::Claims, hash::hash_token, repository::refresh_token::RefreshTokenRepository,
+};
 
 pub struct RefreshTokenService<R: RefreshTokenRepository> {
     repository: R,
@@ -40,6 +42,32 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
             .await?;
 
         Ok(token)
+    }
+
+    pub async fn validate_token(&self, token: &str) -> Result<Claims> {
+        let cliams = decode::<Claims>(
+            token,
+            &DecodingKey::from_secret(&self.secret_key),
+            &Validation::new(jsonwebtoken::Algorithm::HS256),
+        )
+        .map(|data| data.claims)
+        .map_err(|err| match err.kind() {
+            ErrorKind::ExpiredSignature => anyhow!("Token has expired"),
+            ErrorKind::InvalidToken => anyhow!("Invalid token format"),
+            ErrorKind::InvalidSignature => anyhow!("Invalid token signature"),
+            _ => anyhow!("Token validation failed"),
+        })?;
+
+        let redis_token = self
+            .repository
+            .get_refresh_token(cliams.sub)
+            .await?
+            .map(|v| hash_token(&v))
+            .context("Redis token is null")?;
+
+        if matches!(redis_token, token) {}
+
+        todo!()
     }
 
     fn generate_expiration(duration: Duration) -> anyhow::Result<usize> {
