@@ -47,6 +47,12 @@ impl RefreshTokenRepository for RedisRefreshTokenRepository {
     }
 
     async fn delete_refresh_token(&self, user_id: i32) -> Result<()> {
-        todo!()
+        self.client
+            .del(format!("refresh_token:{}", user_id))
+            .await
+            .context(format!(
+                "Failed to delete refresh token with id: {}",
+                user_id
+            ))
     }
 }
