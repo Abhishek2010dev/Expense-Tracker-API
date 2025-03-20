@@ -8,7 +8,7 @@ use crate::auth::token::{
     claims::Claims,
     error::TokenValidationError,
     repository::refresh_token::RefreshTokenRepository,
-    utils::{decode_token, generate_expiration, hash_token},
+    utils::{decode_token, hash_token},
 };
 
 pub struct RefreshTokenService<R: RefreshTokenRepository> {

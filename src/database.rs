@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
@@ -10,10 +10,10 @@ pub trait DatabaseConnection<DB: Database> {
     where
         Self: Sized;
 
-    fn pool(&self) -> &Pool<DB>;
+    fn pool(&self) -> Arc<Pool<DB>>;
 }
 
-pub struct PgDatabase(Pool<Postgres>);
+pub struct PgDatabase(Arc<Pool<Postgres>>);
 
 #[async_trait]
 impl DatabaseConnection<Postgres> for PgDatabase {
@@ -34,11 +34,11 @@ impl DatabaseConnection<Postgres> for PgDatabase {
             .await
             .context("Failed to run migration")?;
 
-        Ok(Self(pool))
+        Ok(Self(Arc::new(pool)))
     }
 
-    fn pool(&self) -> &Pool<Postgres> {
-        &self.0
+    fn pool(&self) -> Arc<Pool<Postgres>> {
+        self.0.clone()
     }
 }
 

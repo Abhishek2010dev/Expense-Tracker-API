@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::{model::User, utils::CreateUserPayload};
 use anyhow::{Context, Ok, Result};
 use async_trait::async_trait;
@@ -11,11 +13,11 @@ pub trait UserRespository {
 }
 
 pub struct UserRespositoryImpl {
-    pool: Pool<Postgres>,
+    pool: Arc<Pool<Postgres>>,
 }
 
 impl UserRespositoryImpl {
-    pub fn new(pool: Pool<Postgres>) -> Self {
+    pub fn new(pool: Arc<Pool<Postgres>>) -> Self {
         Self { pool }
     }
 }
