@@ -1,7 +1,8 @@
 mod auth;
 pub mod config;
 mod database;
+mod error;
 mod redis;
 pub mod server;
-pub mod state;
+mod state;
 mod user;
