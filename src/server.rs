@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::{Context, Ok};
 use axum::Router;
 use sqlx::Postgres;
@@ -8,6 +10,7 @@ use crate::{
     config::Config,
     database::{DatabaseConnection, PgDatabase},
     redis::{CacheConnection, RedisClient},
+    state::AppState,
 };
 
 pub struct Server<C, D, R>
@@ -46,7 +49,10 @@ impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient>
     }
 
     fn build_routes(&self) -> Router {
-        Router::new().layer(TraceLayer::new_for_http())
+        let state = AppState::new(self.db.pool(), self.redis.client(), &self.config);
+        Router::new()
+            .layer(TraceLayer::new_for_http())
+            .with_state(Arc::new(state))
     }
 
     async fn shutdown_signal() {
