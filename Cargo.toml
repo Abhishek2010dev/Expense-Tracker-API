@@ -8,6 +8,7 @@ anyhow = "1.0.97"
 argon2 = "0.5.3"
 async-trait = "0.1.87"
 axum = "0.8.1"
+axum-valid = "0.23.0"
 chrono = { version = "0.4.40", features = ["serde"] }
 dotenv = "0.15.0"
 fred = "10.1.0"
