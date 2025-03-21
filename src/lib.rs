@@ -6,3 +6,4 @@ mod redis;
 pub mod server;
 mod state;
 mod user;
+mod validation;

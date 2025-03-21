@@ -2,21 +2,23 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
 use axum_valid::Valid;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde::Deserialize;
 use validator::Validate;
 
 use crate::{
     auth::{
         password::PasswordService,
-        token::service::{access_token::AccessTokenService, refresh_token::RefreshTokenService},
+        token::{
+            response::RefreshTokenResponse,
+            service::{access_token::AccessTokenService, refresh_token::RefreshTokenService},
+        },
     },
     error::AppError,
     state::AppState,
     user::{repository::UserRepository, utils::CreateUserPayload},
 };
 
-#[derive(Debug, Validate, Deserialize, Serialize)]
+#[derive(Debug, Validate, Deserialize)]
 pub struct RegisterPayload {
     #[validate(length(min = 2, message = "Name must be at least 2 characters long"))]
     name: String,
@@ -28,10 +30,10 @@ pub struct RegisterPayload {
     password: String,
 }
 
-pub async fn register(
+pub async fn register_handler(
     State(state): State<Arc<AppState>>,
     Valid(Json(payload)): Valid<Json<RegisterPayload>>,
-) -> Result<(StatusCode, Json<Value>), AppError> {
+) -> Result<(StatusCode, Json<RefreshTokenResponse>), AppError> {
     if state
         .user_repository
         .exists_by_email(&payload.email)
@@ -50,13 +52,9 @@ pub async fn register(
         })
         .await?;
 
-    let access_token = state.access_token_service.generate_token(user.id).await?;
-    let refresh_token = state.refresh_token_service.generate_token(user.id).await?;
-
-    let response = serde_json::json!({
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-    });
-
+    let response = RefreshTokenResponse {
+        access_token: state.access_token_service.generate_token(user.id).await?,
+        refresh_token: state.refresh_token_service.generate_token(user.id).await?,
+    };
     Ok((StatusCode::CREATED, Json(response)))
 }

@@ -7,6 +7,7 @@ use tokio::{net::TcpListener, signal};
 use tower_http::trace::TraceLayer;
 
 use crate::{
+    auth,
     config::Config,
     database::{DatabaseConnection, PgDatabase},
     redis::{CacheConnection, RedisClient},
@@ -51,8 +52,8 @@ impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient>
     fn build_routes(&self) -> Router {
         let state = AppState::new(self.db.pool(), self.redis.client(), &self.config);
         Router::new()
+            .merge(auth::handler::router())
             .layer(TraceLayer::new_for_http())
-            .with_state(Arc::new(state))
     }
 
     async fn shutdown_signal() {
