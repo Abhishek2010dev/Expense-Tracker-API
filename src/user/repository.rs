@@ -1,29 +1,29 @@
 use std::sync::Arc;
 
 use super::{model::User, utils::CreateUserPayload};
-use anyhow::{Context, Ok, Result};
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use sqlx::{Pool, Postgres};
 
 #[async_trait]
-pub trait UserRespository {
+pub trait UserRepository: Send + Sync {
     async fn create(&self, payload: CreateUserPayload) -> Result<User>;
     async fn find_by_id(&self, id: i32) -> Result<Option<User>>;
-    async fn exits(&self, id: i32) -> Result<bool>;
+    async fn exists(&self, id: i32) -> Result<bool>;
 }
 
-pub struct UserRespositoryImpl {
+pub struct UserRepositoryImpl {
     pool: Arc<Pool<Postgres>>,
 }
 
-impl UserRespositoryImpl {
+impl UserRepositoryImpl {
     pub fn new(pool: Arc<Pool<Postgres>>) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait]
-impl UserRespository for UserRespositoryImpl {
+impl UserRepository for UserRepositoryImpl {
     async fn create(&self, payload: CreateUserPayload) -> Result<User> {
         sqlx::query_as!(
             User,
@@ -41,13 +41,15 @@ impl UserRespository for UserRespositoryImpl {
         sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
             .fetch_optional(&*self.pool)
             .await
-            .context(format!("Failed to find user by id: {}", id))
+            .with_context(|| format!("Failed to find user by id: {}", id))
     }
 
-    async fn exits(&self, id: i32) -> Result<bool> {
+    async fn exists(&self, id: i32) -> Result<bool> {
         let exists = sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", id)
             .fetch_one(&*self.pool)
-            .await?;
+            .await
+            .context("Failed to check if user exists")?;
+
         Ok(exists.unwrap_or(false))
     }
 }

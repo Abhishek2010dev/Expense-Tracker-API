@@ -14,7 +14,7 @@ use fred::prelude::Client as RedisClient;
 
 pub struct AppState {
     user_repository: dyn UserRespository,
-    access_token_service: dyn AccessTokenService,
+    access_token_servic
     refresh_token_service: dyn RefreshTokenService,
 }
 

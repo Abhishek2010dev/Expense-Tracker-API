@@ -1,4 +1,5 @@
 use anyhow::Context;
+use async_trait::async_trait;
 use std::sync::Arc;
 
 use chrono::Duration;
@@ -10,9 +11,10 @@ pub struct AccessTokenServiceImpl {
     secret_key: Arc<Vec<u8>>,
 }
 
+#[async_trait]
 pub trait AccessTokenService: Send + Sync {
-    fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
-    fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
+    async fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
+    async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
 }
 
 impl AccessTokenServiceImpl {
@@ -23,7 +25,7 @@ impl AccessTokenServiceImpl {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl AccessTokenService for AccessTokenServiceImpl {
     async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
         let duration = Duration::hours(1); // Access tokens usually have a shorter lifespan
