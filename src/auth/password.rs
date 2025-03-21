@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
@@ -28,6 +28,7 @@ impl PasswordService for PasswordServiceImpl {
         self.argon2
             .hash_password(password.as_bytes(), &salt)
             .map(|hashed| hashed.to_string())
+            .map_err(|err| anyhow!(err))
             .context("Failed to hash password")
     }
 
