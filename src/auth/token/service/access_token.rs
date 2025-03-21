@@ -6,18 +6,26 @@ use jsonwebtoken::{EncodingKey, Header, encode};
 
 use crate::auth::token::{claims::Claims, error::TokenValidationError, utils::decode_token};
 
-pub struct AccessTokenService {
+pub struct AccessTokenServiceImpl {
     secret_key: Arc<Vec<u8>>,
 }
 
-impl AccessTokenService {
+pub trait AccessTokenService {
+    fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
+    fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
+}
+
+impl AccessTokenServiceImpl {
     pub fn new(secret_key: impl Into<Vec<u8>>) -> Self {
         Self {
             secret_key: Arc::new(secret_key.into()),
         }
     }
+}
 
-    pub async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
+#[async_trait::async_trait]
+impl AccessTokenService for AccessTokenServiceImpl {
+    async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
         let duration = Duration::hours(1); // Access tokens usually have a shorter lifespan
         let claims = Claims::new(user_id, duration)?;
         let token = encode(
@@ -30,7 +38,7 @@ impl AccessTokenService {
         Ok(token)
     }
 
-    pub async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError> {
+    async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError> {
         decode_token(&self.secret_key, token)
     }
 }
