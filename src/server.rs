@@ -50,10 +50,15 @@ impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient>
     }
 
     fn build_routes(&self) -> Router {
-        let state = AppState::new(self.db.pool(), self.redis.client(), &self.config);
+        let state = Arc::new(AppState::new(
+            self.db.pool(),
+            self.redis.client(),
+            &self.config,
+        ));
         Router::new()
             .merge(auth::handler::router())
             .layer(TraceLayer::new_for_http())
+            .with_state(state)
     }
 
     async fn shutdown_signal() {

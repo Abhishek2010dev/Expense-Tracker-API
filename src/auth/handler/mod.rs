@@ -7,8 +7,6 @@ use crate::state::AppState;
 
 pub mod register;
 
-pub fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
-    return Router::new()
-        .route("/register", post(register_handler))
-        .with_state(state);
+pub fn router() -> Router<Arc<AppState>> {
+    return Router::new().route("/register", post(register_handler));
 }

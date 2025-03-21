@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
-use axum_valid::Valid;
 use serde::Deserialize;
 use validator::Validate;
 
@@ -16,6 +15,7 @@ use crate::{
     error::AppError,
     state::AppState,
     user::{repository::UserRepository, utils::CreateUserPayload},
+    validation::ValidatedJson,
 };
 
 #[derive(Debug, Validate, Deserialize)]
@@ -32,7 +32,7 @@ pub struct RegisterPayload {
 
 pub async fn register_handler(
     State(state): State<Arc<AppState>>,
-    Valid(Json(payload)): Valid<Json<RegisterPayload>>,
+    ValidatedJson(payload): ValidatedJson<RegisterPayload>,
 ) -> Result<(StatusCode, Json<RefreshTokenResponse>), AppError> {
     if state
         .user_repository
