@@ -21,6 +21,7 @@ pub struct RefreshTokenServiceImpl<R: RefreshTokenRepository + Send + Sync> {
 pub trait RefreshTokenService: Send + Sync {
     async fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
     async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
+    async fn delete_token(&self, user_id: i32) -> anyhow::Result<()>;
 }
 
 impl<R: RefreshTokenRepository + Send + Sync> RefreshTokenServiceImpl<R> {
@@ -66,5 +67,9 @@ impl<R: RefreshTokenRepository + Send + Sync> RefreshTokenService for RefreshTok
         }
 
         Ok(claims)
+    }
+
+    async fn delete_token(&self, user_id: i32) -> anyhow::Result<()> {
+        self.repository.delete_refresh_token(user_id).await
     }
 }

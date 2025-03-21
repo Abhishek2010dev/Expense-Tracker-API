@@ -8,6 +8,7 @@ use register::register_handler;
 use crate::state::AppState;
 
 pub mod login;
+pub mod logout;
 pub mod refresh;
 pub mod register;
 
