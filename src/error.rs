@@ -7,7 +7,7 @@ use serde_json::json;
 use thiserror::Error;
 use tracing::error;
 
-[derive(Debug, Error)]
+#[derive(Debug, Error)]
 pub enum AppError {
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
@@ -23,7 +23,7 @@ pub enum AppError {
 }
 
 impl IntoResponse for AppError {
-   fn into_response(self) -> Response {
+    fn into_response(self) -> Response {
         error!("{}", self);
 
         let (status, error_message) = match &self {
