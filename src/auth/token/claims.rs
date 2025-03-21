@@ -47,27 +47,10 @@ where
             .await
             .map_err(|_| AppError::BadRequest("Invalid token".into()))?;
 
-        match state
+        state
             .access_token_service
             .validate_token(bearer.token())
             .await
-        {
-            Ok(claims) => Ok(claims),
-            Err(err) => match err {
-                crate::auth::token::error::TokenValidationError::Expired => {
-                    Err(AppError::Unauthorized("Token has expired".into()))
-                }
-                crate::auth::token::error::TokenValidationError::InvalidFormat => {
-                    Err(AppError::BadRequest("Token format is invalid".into()))
-                }
-                crate::auth::token::error::TokenValidationError::InvalidSignature => {
-                    Err(AppError::Unauthorized("Token signature is invalid".into()))
-                }
-                crate::auth::token::error::TokenValidationError::ValidationFailed => {
-                    Err(AppError::Unauthorized("Token validation failed".into()))
-                }
-                crate::auth::token::error::TokenValidationError::RedisTokenNull => unreachable!(),
-            },
-        }
+            .map_err(|err| AppError::from(err))
     }
 }

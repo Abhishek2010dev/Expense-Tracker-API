@@ -8,6 +8,8 @@ use serde_json::json;
 use thiserror::Error;
 use tracing::error;
 
+use crate::auth::token::error::TokenValidationError;
+
 #[derive(Debug, Error)]
 pub enum AppError {
     #[error("Not Found: {0}")]
@@ -59,6 +61,28 @@ impl IntoResponse for AppError {
                 };
                 let body = Json(json!({ "error": error_message }));
                 (status, body).into_response()
+            }
+        }
+    }
+}
+
+impl From<TokenValidationError> for AppError {
+    fn from(value: TokenValidationError) -> Self {
+        match value {
+            crate::auth::token::error::TokenValidationError::Expired => {
+                AppError::Unauthorized("Token has expired".into())
+            }
+            crate::auth::token::error::TokenValidationError::InvalidFormat => {
+                AppError::BadRequest("Token format is invalid".into())
+            }
+            crate::auth::token::error::TokenValidationError::InvalidSignature => {
+                AppError::Unauthorized("Token signature is invalid".into())
+            }
+            crate::auth::token::error::TokenValidationError::ValidationFailed => {
+                AppError::Unauthorized("Token validation failed".into())
+            }
+            crate::auth::token::error::TokenValidationError::RedisTokenNull => {
+                AppError::Unauthorized("Token not found in Redis".into())
             }
         }
     }

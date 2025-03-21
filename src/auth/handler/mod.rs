@@ -7,6 +7,7 @@ use register::register_handler;
 use crate::state::AppState;
 
 pub mod login;
+pub mod refresh;
 pub mod register;
 
 pub fn router() -> Router<Arc<AppState>> {
