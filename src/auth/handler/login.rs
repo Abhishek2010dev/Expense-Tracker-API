@@ -5,8 +5,17 @@ use serde::Deserialize;
 use validator::Validate;
 
 use crate::{
-    auth::token::response::RefreshTokenResponse, error::AppError, state::AppState,
-    user::repository::UserRepository, validation::ValidatedJson,
+    auth::{
+        password::PasswordService,
+        token::{
+            response::RefreshTokenResponse,
+            service::{access_token::AccessTokenService, refresh_token::RefreshTokenService},
+        },
+    },
+    error::AppError,
+    state::AppState,
+    user::repository::UserRepository,
+    validation::ValidatedJson,
 };
 
 #[derive(Debug, Validate, Deserialize)]
@@ -26,7 +35,18 @@ pub async fn login_handler(
         .user_repository
         .find_by_email(&payload.email)
         .await?
-        .ok_or(AppError::BadRequest("User does not exits".into()))?;
+        .ok_or(AppError::BadRequest("User does not exit".into()))?;
 
-    todo!()
+    if !state
+        .password_service
+        .verify_password(&payload.password, &user.password_hash)
+    {
+        return Err(AppError::Unauthorized("Invalid credentials".into()));
+    }
+
+    let response = RefreshTokenResponse {
+        access_token: state.access_token_service.generate_token(user.id).await?,
+        refresh_token: state.refresh_token_service.generate_token(user.id).await?,
+    };
+    Ok((StatusCode::OK, Json(response)))
 }
