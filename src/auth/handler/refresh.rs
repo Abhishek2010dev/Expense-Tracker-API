@@ -2,15 +2,12 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
 use serde::Deserialize;
+use serde_json::Value;
 
 use crate::{
-    auth::token::{
-        response::RefreshTokenResponse,
-        service::{access_token::AccessTokenService, refresh_token::RefreshTokenService},
-    },
+    auth::token::service::{access_token::AccessTokenService, refresh_token::RefreshTokenService},
     error::AppError,
     state::AppState,
-    validation::ValidatedJson,
 };
 
 #[derive(Debug, Deserialize)]
@@ -20,17 +17,18 @@ pub struct RefreshTokenPayload {
 
 pub async fn refresh_token_handler(
     State(state): State<Arc<AppState>>,
-    ValidatedJson(payload): ValidatedJson<RefreshTokenPayload>,
-) -> Result<(StatusCode, Json<RefreshTokenResponse>), AppError> {
+    Json(payload): Json<RefreshTokenPayload>,
+) -> Result<(StatusCode, Json<Value>), AppError> {
     let user_id = state
         .refresh_token_service
         .validate_token(&payload.refresh_token)
-        .await?;
+        .await?
+        .sub;
 
-    let response = RefreshTokenResponse {
-        access_token: state.access_token_service.generate_token(user_id).await?,
-        refresh_token: state.refresh_token_service.generate_token(user_id).await?,
-    };
+    let access_token = state.access_token_service.generate_token(user_id).await?;
+    let response = serde_json::json!({
+        "access_token": access_token,
+    });
 
     Ok((StatusCode::OK, Json(response)))
 }
