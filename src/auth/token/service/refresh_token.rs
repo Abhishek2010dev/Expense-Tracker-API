@@ -1,4 +1,5 @@
 use anyhow::Context;
+use async_trait::async_trait;
 use std::sync::Arc;
 
 use chrono::Duration;
@@ -11,17 +12,18 @@ use crate::auth::token::{
     utils::{decode_token, hash_token},
 };
 
-pub struct RefreshTokenServiceImpl<R: RefreshTokenRepository> {
+pub struct RefreshTokenServiceImpl<R: RefreshTokenRepository + Send + Sync> {
     repository: R,
     secret_key: Arc<Vec<u8>>,
 }
 
+#[async_trait]
 pub trait RefreshTokenService: Send + Sync {
-    fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
-    fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
+    async fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
+    async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
 }
 
-impl<R: RefreshTokenRepository> RefreshTokenServiceImpl<R> {
+impl<R: RefreshTokenRepository + Send + Sync> RefreshTokenServiceImpl<R> {
     pub fn new(repository: R, secret_key: impl Into<Vec<u8>>) -> Self {
         Self {
             repository,
@@ -30,7 +32,7 @@ impl<R: RefreshTokenRepository> RefreshTokenServiceImpl<R> {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl<R: RefreshTokenRepository + Send + Sync> RefreshTokenService for RefreshTokenServiceImpl<R> {
     async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
         let duration = Duration::days(7);

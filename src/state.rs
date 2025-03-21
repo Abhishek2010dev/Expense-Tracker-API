@@ -13,9 +13,9 @@ use crate::{
 use fred::prelude::Client as RedisClient;
 
 pub struct AppState {
-    user_repository: Arc<dyn UserRespository>,
-    access_token_service: Arc<dyn TokenService>,
-    refresh_token_service: Arc<dyn TokenService>,
+    user_repository: dyn UserRespository,
+    access_token_service: dyn AccessTokenService,
+    refresh_token_service: dyn RefreshTokenService,
 }
 
 impl AppState {
