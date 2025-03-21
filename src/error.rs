@@ -1,5 +1,6 @@
 use axum::{
     Json,
+    extract::rejection::JsonRejection,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
@@ -23,6 +24,9 @@ pub enum AppError {
 
     #[error(transparent)]
     ValidationError(#[from] validator::ValidationErrors),
+
+    #[error(transparent)]
+    AxumJsonRejection(#[from] JsonRejection),
 }
 
 impl IntoResponse for AppError {
@@ -39,14 +43,15 @@ impl IntoResponse for AppError {
             }
             _ => {
                 let (status, error_message) = match &self {
-                    AppError::NotFound(message) => (StatusCode::NOT_FOUND, message.as_str()),
-                    AppError::BadRequest(message) => (StatusCode::BAD_REQUEST, message.as_str()),
-                    AppError::Conflict(msg) => (StatusCode::CONFLICT, msg.as_str()),
+                    AppError::NotFound(message) => (StatusCode::NOT_FOUND, message),
+                    AppError::BadRequest(message) => (StatusCode::BAD_REQUEST, message),
+                    AppError::Conflict(msg) => (StatusCode::CONFLICT, msg),
                     AppError::InternalServerError(_) => (
                         StatusCode::INTERNAL_SERVER_ERROR,
-                        "An internal server error occurred.",
+                        &"An internal server error occurred.".to_string(),
                     ),
-                    AppError::ValidationError(_) => unreachable!(), // Already handled above
+                    AppError::ValidationError(_) => unreachable!(),
+                    AppError::AxumJsonRejection(_) => (StatusCode::BAD_REQUEST, &self.to_string()),
                 };
                 let body = Json(json!({ "error": error_message }));
                 (status, body).into_response()
