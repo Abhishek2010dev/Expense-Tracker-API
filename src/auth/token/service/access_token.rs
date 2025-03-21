@@ -10,7 +10,7 @@ pub struct AccessTokenServiceImpl {
     secret_key: Arc<Vec<u8>>,
 }
 
-pub trait AccessTokenService {
+pub trait AccessTokenService: Send + Sync {
     fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
     fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
 }

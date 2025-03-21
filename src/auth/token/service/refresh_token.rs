@@ -11,20 +11,28 @@ use crate::auth::token::{
     utils::{decode_token, hash_token},
 };
 
-pub struct RefreshTokenService<R: RefreshTokenRepository> {
+pub struct RefreshTokenServiceImpl<R: RefreshTokenRepository> {
     repository: R,
     secret_key: Arc<Vec<u8>>,
 }
 
-impl<R: RefreshTokenRepository> RefreshTokenService<R> {
+pub trait RefreshTokenService: Send + Sync {
+    fn generate_token(&self, user_id: i32) -> anyhow::Result<String>;
+    fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError>;
+}
+
+impl<R: RefreshTokenRepository> RefreshTokenServiceImpl<R> {
     pub fn new(repository: R, secret_key: impl Into<Vec<u8>>) -> Self {
-        return Self {
+        Self {
             repository,
             secret_key: Arc::new(secret_key.into()),
-        };
+        }
     }
+}
 
-    pub async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
+#[async_trait::async_trait]
+impl<R: RefreshTokenRepository + Send + Sync> RefreshTokenService for RefreshTokenServiceImpl<R> {
+    async fn generate_token(&self, user_id: i32) -> anyhow::Result<String> {
         let duration = Duration::days(7);
         let claims = Claims::new(user_id, duration)?;
 
@@ -42,7 +50,7 @@ impl<R: RefreshTokenRepository> RefreshTokenService<R> {
         Ok(token)
     }
 
-    pub async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError> {
+    async fn validate_token(&self, token: &str) -> Result<Claims, TokenValidationError> {
         let claims = decode_token(&self.secret_key, token)?;
         let redis_token = self
             .repository
