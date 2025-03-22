@@ -67,7 +67,16 @@ impl IntoResponse for AppError {
 }
 
 impl From<TokenValidationError> for AppError {
-    fn from(_: TokenValidationError) -> Self {
-        AppError::Unauthorized("Invalid or expired token".into())
+    fn from(err: TokenValidationError) -> Self {
+        error!("Token validation failed: {:?}", err);
+        match err {
+            TokenValidationError::Expired => {
+                AppError::Unauthorized("Your session has expired. Please log in again.".into())
+            }
+            TokenValidationError::InvalidFormat | TokenValidationError::InvalidSignature => {
+                AppError::Unauthorized("Invalid authentication token.".into())
+            }
+            _ => AppError::Unauthorized("Authentication failed. Please try again.".into()),
+        }
     }
 }
