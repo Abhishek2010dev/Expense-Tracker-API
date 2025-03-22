@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use axum::{
     RequestPartsExt,
     extract::{FromRef, FromRequestParts},
