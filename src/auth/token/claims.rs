@@ -46,12 +46,12 @@ where
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
-            .map_err(|_| AppError::BadRequest("Invalid token".into()))?;
+            .map_err(|_| AppError::Unauthorized("Missing or invalid token".into()))?;
 
         state
             .access_token_service
             .validate_token(bearer.token())
             .await
-            .map_err(|err| AppError::from(err))
+            .map_err(AppError::from)
     }
 }
