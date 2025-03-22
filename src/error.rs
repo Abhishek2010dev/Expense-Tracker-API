@@ -67,23 +67,7 @@ impl IntoResponse for AppError {
 }
 
 impl From<TokenValidationError> for AppError {
-    fn from(value: TokenValidationError) -> Self {
-        match value {
-            crate::auth::token::error::TokenValidationError::Expired => {
-                AppError::Unauthorized("Token has expired".into())
-            }
-            crate::auth::token::error::TokenValidationError::InvalidFormat => {
-                AppError::BadRequest("Token format is invalid".into())
-            }
-            crate::auth::token::error::TokenValidationError::InvalidSignature => {
-                AppError::Unauthorized("Token signature is invalid".into())
-            }
-            crate::auth::token::error::TokenValidationError::ValidationFailed => {
-                AppError::Unauthorized("Token validation failed".into())
-            }
-            crate::auth::token::error::TokenValidationError::RedisTokenNull => {
-                AppError::Unauthorized("Token not found in Redis".into())
-            }
-        }
+    fn from(_: TokenValidationError) -> Self {
+        AppError::Unauthorized("Invalid or expired token".into())
     }
 }
