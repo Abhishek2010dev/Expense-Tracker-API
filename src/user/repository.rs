@@ -8,8 +8,6 @@ use sqlx::{Pool, Postgres};
 #[async_trait]
 pub trait UserRepository: Send + Sync {
     async fn create(&self, payload: CreateUserPayload) -> Result<User>;
-    async fn find_by_id(&self, id: i32) -> Result<Option<User>>;
-    async fn exists_by_id(&self, id: i32) -> Result<bool>;
     async fn exists_by_email(&self, email: &str) -> Result<bool>;
     async fn find_by_email(&self, email: &str) -> Result<Option<User>>;
 }
@@ -39,27 +37,11 @@ impl UserRepository for UserRepositoryImpl {
         .context("Failed to create user")
     }
 
-    async fn find_by_id(&self, id: i32) -> Result<Option<User>> {
-        sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
-            .fetch_optional(&*self.pool)
-            .await
-            .with_context(|| format!("Failed to find user by id: {}", id))
-    }
-
     async fn find_by_email(&self, email: &str) -> Result<Option<User>> {
         sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)
             .fetch_optional(&*self.pool)
             .await
             .with_context(|| format!("Failed to find user by email: {}", email))
-    }
-
-    async fn exists_by_id(&self, id: i32) -> Result<bool> {
-        let exists = sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", id)
-            .fetch_one(&*self.pool)
-            .await
-            .context("Failed to check if user exists")?;
-
-        Ok(exists.unwrap_or(false))
     }
 
     async fn exists_by_email(&self, email: &str) -> Result<bool> {
