@@ -9,8 +9,8 @@ use crate::{
 };
 
 pub async fn logout_handler(
-    State(state): State<Arc<AppState>>,
     claims: Claims,
+    State(state): State<Arc<AppState>>,
 ) -> Result<StatusCode, AppError> {
     state.refresh_token_service.delete_token(claims.sub).await?;
     Ok(StatusCode::NO_CONTENT)

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use axum::{
     RequestPartsExt,
@@ -34,13 +36,13 @@ impl Claims {
 
 impl<S> FromRequestParts<S> for Claims
 where
-    AppState: FromRef<S>,
+    Arc<AppState>: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let state = AppState::from_ref(state);
+        let state = Arc::from_ref(state);
 
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()

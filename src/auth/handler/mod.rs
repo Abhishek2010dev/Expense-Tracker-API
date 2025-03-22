@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
-use axum::{Router, routing::post};
+use axum::{
+    Router,
+    routing::{delete, post},
+};
 use login::login_handler;
+use logout::logout_handler;
 use refresh::refresh_token_handler;
 use register::register_handler;
 
@@ -16,5 +20,6 @@ pub fn router() -> Router<Arc<AppState>> {
     return Router::new()
         .route("/register", post(register_handler))
         .route("/login", post(login_handler))
-        .route("/refresh", post(refresh_token_handler));
+        .route("/refresh", post(refresh_token_handler))
+        .route("/logout", delete(logout_handler));
 }
