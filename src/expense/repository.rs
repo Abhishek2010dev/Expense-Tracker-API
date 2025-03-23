@@ -83,19 +83,23 @@ impl ExpenseRepository {
         &self,
         payload: UpdateExpensePayload,
     ) -> anyhow::Result<Option<Expense>> {
-        sqlx::query_as(
+        sqlx::query_as!(
             Expense,
             r#"
-            UPDATE expenses 
-             SET category = COALESCE($1, category),
-                 amount = COALESCE($2, amount),
-                 description = COALESCE($3, description)
-             WHERE id = $4
-            RETURNING id, category AS "category: _", amount, description, expense_date;
-            "#,
-            payload.category as ExpenseCategory,
+    UPDATE expenses 
+    SET category = COALESCE($1, category),
+        amount = COALESCE($2, amount),
+        description = COALESCE($3, description)
+    WHERE id = $4
+    RETURNING id, category AS "category: _", amount, description, expense_date;
+    "#,
+            payload.category as _,
             payload.amount,
             payload.description,
-            user_id
-        ).fetch_optional(&*self.pool).await.context("Failed to update expense");
+            payload.id
+        )
+        .fetch_optional(&*self.pool)
+        .await
+        .context("Failed to update expense")
+    }
 }
