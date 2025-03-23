@@ -13,6 +13,9 @@ pub struct ExpenseRepository {
 }
 
 impl ExpenseRepository {
+    pub fn new(pool: Arc<PgPool>) -> Self {
+        ExpenseRepository { pool }
+    }
     pub async fn create_expense(
         &self,
         payload: CreateExpensePayload,
