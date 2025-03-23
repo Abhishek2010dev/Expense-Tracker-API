@@ -43,8 +43,8 @@ An efficient and secure expense tracker API built using Rust with Axum, SQLx, an
 ### ⚙️ Setup
 ```sh
 # Clone the repository
-git clone https://github.com/your-username/expense-tracker-api.git
-cd expense-tracker-api
+git clone https://github.com/Abhishek2010dev/Expense-Tracker-API
+cd Expense-Tracker-API
 
 # Set up environment variables
 cp .env.example .env
