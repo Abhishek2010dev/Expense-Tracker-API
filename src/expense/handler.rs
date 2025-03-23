@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     routing::post,
 };
@@ -48,6 +48,14 @@ pub async fn get_expenses(
     };
 
     Ok((StatusCode::OK, Json(expenses)))
+}
+
+pub async fn delete_expense(
+    claims: Claims,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+) -> Result<(StatusCode, Json<Vec<Expense>>), AppError> {
+    match state.expense_repository.delete_expense(id).await {}
 }
 
 pub fn router() -> Router<Arc<AppState>> {
