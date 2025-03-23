@@ -1,6 +1,11 @@
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
+use axum::{
+    Json, Router,
+    extract::{Query, State},
+    http::StatusCode,
+    routing::post,
+};
 
 use crate::{
     auth::token::claims::Claims, error::AppError, state::AppState, validation::ValidatedJson,
@@ -20,6 +25,14 @@ pub async fn create_expense_handler(
     Ok((StatusCode::CREATED, Json(expense)))
 }
 
+pub async fn get_expenses(
+    claims: Claims,
+    State(state): State<Arc<AppState>>,
+) -> Result<(StatusCode, Json<Vec<Expense>>), AppError> {
+    let expenses = state.expense_repository.find_expenses(claims.sub).await?;
+    Ok((StatusCode::OK, Json(expenses)))
+}
+
 pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/expenses", post(create_expense_handler))
+    Router::new().route("/expenses", post(create_expense_handler).get(get_expenses))
 }
