@@ -87,6 +87,7 @@ impl ExpenseRepository {
 
     pub async fn update_expense(
         &self,
+        user_id: i32,
         payload: UpdateExpensePayload,
     ) -> anyhow::Result<Option<Expense>> {
         sqlx::query_as!(
@@ -96,13 +97,14 @@ impl ExpenseRepository {
     SET category = COALESCE($1, category),
         amount = COALESCE($2, amount),
         description = COALESCE($3, description)
-    WHERE id = $4
+    WHERE id = $4 AND user_id = $5
     RETURNING id, category AS "category: _", amount, description, expense_date;
     "#,
             payload.category as _,
             payload.amount,
             payload.description,
-            payload.id
+            payload.id,
+            user_id
         )
         .fetch_optional(&*self.pool)
         .await

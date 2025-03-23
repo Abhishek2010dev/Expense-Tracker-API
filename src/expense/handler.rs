@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     models::{Expense, ExpenseCategory},
-    utils::CreateExpensePayload,
+    utils::{CreateExpensePayload, UpdateExpensePayload},
 };
 
 pub async fn create_expense_handler(
@@ -65,8 +65,28 @@ pub async fn delete_expense(
     }
 }
 
+pub async fn update_expense(
+    claims: Claims,
+    State(state): State<Arc<AppState>>,
+    ValidatedJson(payload): ValidatedJson<UpdateExpensePayload>,
+) -> Result<(StatusCode, Json<Option<Expense>>), AppError> {
+    match state
+        .expense_repository
+        .update_expense(claims.sub, payload)
+        .await?
+    {
+        Some(v) => Ok((StatusCode::OK, Json(Some(v)))),
+        None => Ok((StatusCode::NOT_FOUND, Json(None))),
+    }
+}
+
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/expenses", post(create_expense_handler).get(get_expenses))
+        .route(
+            "/expenses",
+            post(create_expense_handler)
+                .get(get_expenses)
+                .put(update_expense),
+        )
         .route("/expenses/{id}", delete(delete_expense))
 }
