@@ -18,8 +18,8 @@ pub mod register;
 
 pub fn router() -> Router<Arc<AppState>> {
     return Router::new()
-        .route("/register", post(register_handler))
-        .route("/login", post(login_handler))
-        .route("/refresh", post(refresh_token_handler))
-        .route("/logout", delete(logout_handler));
+        .route("/auth/register", post(register_handler))
+        .route("/auth/login", post(login_handler))
+        .route("/auth/refresh", post(refresh_token_handler))
+        .route("/auth/logout", delete(logout_handler));
 }
