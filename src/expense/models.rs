@@ -18,7 +18,6 @@ pub enum ExpenseCategory {
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Expense {
     pub id: i32,
-    pub user_id: i32,
     pub category: ExpenseCategory,
     pub amount: BigDecimal,
     pub description: Option<String>,

@@ -19,7 +19,7 @@ impl ExpenseRepository {
             r#"
     INSERT INTO expenses (user_id, category, amount, description)
     VALUES ($1, $2, $3, $4)
-    RETURNING id, user_id, category AS "category: _", amount, description, expense_date;
+    RETURNING id, category AS "category: _", amount, description, expense_date;
     "#,
             payload.user_id,
             payload.category as ExpenseCategory,
@@ -35,7 +35,7 @@ impl ExpenseRepository {
         sqlx::query_as!(
             Expense,
             r#"
-            SELECT id, user_id, category AS "category: _", amount, description, expense_date 
+            SELECT id, category AS "category: _", amount, description, expense_date 
             FROM expenses WHERE user_id = $1;
             "#,
             user_id
@@ -51,5 +51,27 @@ impl ExpenseRepository {
             .await
             .context(format!("Failed to delete expense by id: {}", id))?;
         Ok(())
+    }
+
+    pub async fn get_expenses_by_category(
+        &self,
+        user_id: i32,
+        category: ExpenseCategory,
+    ) -> anyhow::Result<Vec<Expense>> {
+        sqlx::query_as!(
+            Expense,
+            r#"
+            SELECT id, category AS "category: _", amount, description, expense_date 
+            FROM expenses WHERE user_id = $1 AND category = $2
+            "#,
+            user_id,
+            category as ExpenseCategory
+        )
+        .fetch_all(&*self.pool)
+        .await
+        .context(format!(
+            "Failed to get expenses with user_id {} and category {:?} ",
+            user_id, category
+        ))
     }
 }
