@@ -18,7 +18,7 @@ pub struct CreateExpensePayload {
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateExpensePayload {
-    #[validate(length(min = 1))]
+    #[validate(range(min = 1))]
     pub id: i32,
 
     #[validate(custom(function = "validate_category"))]
