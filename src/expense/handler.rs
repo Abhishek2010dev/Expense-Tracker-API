@@ -11,7 +11,10 @@ use crate::{
     auth::token::claims::Claims, error::AppError, state::AppState, validation::ValidatedJson,
 };
 
-use super::{models::Expense, utils::CreateExpensePayload};
+use super::{
+    models::{Expense, ExpenseCategory},
+    utils::CreateExpensePayload,
+};
 
 pub async fn create_expense_handler(
     claims: Claims,
@@ -25,11 +28,25 @@ pub async fn create_expense_handler(
     Ok((StatusCode::CREATED, Json(expense)))
 }
 
+#[derive(serde::Deserialize)]
+pub struct ExpenseCategoryQuery {
+    pub category: Option<ExpenseCategory>,
+}
+
 pub async fn get_expenses(
     claims: Claims,
     State(state): State<Arc<AppState>>,
+    Query(query): Query<ExpenseCategoryQuery>,
 ) -> Result<(StatusCode, Json<Vec<Expense>>), AppError> {
-    let expenses = state.expense_repository.find_expenses(claims.sub).await?;
+    let expenses = if let Some(category) = query.category {
+        state
+            .expense_repository
+            .find_expenses_by_category(claims.sub, category)
+            .await?
+    } else {
+        state.expense_repository.find_expenses(claims.sub).await?
+    };
+
     Ok((StatusCode::OK, Json(expenses)))
 }
 
