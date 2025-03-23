@@ -13,7 +13,11 @@ pub struct ExpenseRepository {
 }
 
 impl ExpenseRepository {
-    pub async fn create_expense(&self, payload: CreateExpensePayload) -> anyhow::Result<Expense> {
+    pub async fn create_expense(
+        &self,
+        payload: CreateExpensePayload,
+        user_id: i32,
+    ) -> anyhow::Result<Expense> {
         sqlx::query_as!(
             Expense,
             r#"
@@ -21,7 +25,7 @@ impl ExpenseRepository {
     VALUES ($1, $2, $3, $4)
     RETURNING id, category AS "category: _", amount, description, expense_date;
     "#,
-            payload.user_id,
+            user_id,
             payload.category as ExpenseCategory,
             payload.amount,
             payload.description,
