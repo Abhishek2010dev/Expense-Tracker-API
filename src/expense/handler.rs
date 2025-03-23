@@ -4,7 +4,7 @@ use axum::{
     Json, Router,
     extract::{Path, Query, State},
     http::StatusCode,
-    routing::post,
+    routing::{delete, post},
 };
 
 use crate::{
@@ -54,10 +54,19 @@ pub async fn delete_expense(
     claims: Claims,
     State(state): State<Arc<AppState>>,
     Path(id): Path<i32>,
-) -> Result<(StatusCode, Json<Vec<Expense>>), AppError> {
-    match state.expense_repository.delete_expense(id).await {}
+) -> Result<StatusCode, AppError> {
+    match state
+        .expense_repository
+        .delete_expense(id, claims.sub)
+        .await?
+    {
+        Some(_) => Ok(StatusCode::NO_CONTENT),
+        None => Ok(StatusCode::NOT_FOUND),
+    }
 }
 
 pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/expenses", post(create_expense_handler).get(get_expenses))
+    Router::new()
+        .route("/expenses", post(create_expense_handler).get(get_expenses))
+        .route("/expenses/{id}", delete(delete_expense))
 }
