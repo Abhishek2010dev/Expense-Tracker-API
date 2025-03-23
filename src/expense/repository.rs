@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use sqlx::PgPool;
+use sqlx::{PgPool, any};
 
 use super::{
     models::{Expense, ExpenseCategory},
@@ -29,5 +29,19 @@ impl ExpenseRepository {
         .fetch_one(&*self.pool)
         .await
         .context("Failed to create expense")
+    }
+
+    pub async fn get_expenses(&self, user_id: i32) -> anyhow::Result<Vec<Expense>> {
+        sqlx::query_as!(
+            Expense,
+            r#"
+            SELECT id, user_id, category AS "category: _", amount, description, expense_date 
+            FROM expenses WHERE user_id = $1;
+            "#,
+            user_id
+        )
+        .fetch_all(&*self.pool)
+        .await
+        .context(format!("Failed to get expense by user_id: {}", user_id))
     }
 }
