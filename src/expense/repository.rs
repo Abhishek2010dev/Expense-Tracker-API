@@ -5,7 +5,7 @@ use sqlx::PgPool;
 
 use super::{
     models::{Expense, ExpenseCategory},
-    utils::ExpensePayload,
+    utils::{CreateExpensePayload, UpdateExpensePayload},
 };
 
 pub struct ExpenseRepository {
@@ -15,7 +15,7 @@ pub struct ExpenseRepository {
 impl ExpenseRepository {
     pub async fn create_expense(
         &self,
-        payload: ExpensePayload,
+        payload: CreateExpensePayload,
         user_id: i32,
     ) -> anyhow::Result<Expense> {
         sqlx::query_as!(
@@ -78,4 +78,24 @@ impl ExpenseRepository {
             user_id, category
         ))
     }
+
+    pub async fn update_expense(
+        &self,
+        payload: UpdateExpensePayload,
+    ) -> anyhow::Result<Option<Expense>> {
+        sqlx::query_as(
+            Expense,
+            r#"
+            UPDATE expenses 
+             SET category = COALESCE($1, category),
+                 amount = COALESCE($2, amount),
+                 description = COALESCE($3, description)
+             WHERE id = $4
+            RETURNING id, category AS "category: _", amount, description, expense_date;
+            "#,
+            payload.category as ExpenseCategory,
+            payload.amount,
+            payload.description,
+            user_id
+        ).fetch_optional(&*self.pool).await.context("Failed to update expense");
 }
