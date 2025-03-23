@@ -44,4 +44,12 @@ impl ExpenseRepository {
         .await
         .context(format!("Failed to get expense by user_id: {}", user_id))
     }
+
+    pub async fn delete_expense(&self, id: i32) -> anyhow::Result<()> {
+        sqlx::query!("DELETE FROM expenses WHERE id = $1;", id)
+            .execute(&*self.pool)
+            .await
+            .context(format!("Failed to delete expense by id: {}", id))?;
+        Ok(())
+    }
 }
