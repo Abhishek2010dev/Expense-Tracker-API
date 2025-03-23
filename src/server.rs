@@ -10,6 +10,7 @@ use crate::{
     auth,
     config::Config,
     database::{DatabaseConnection, PgDatabase},
+    expense,
     redis::{CacheConnection, RedisClient},
     state::AppState,
 };
@@ -57,6 +58,7 @@ impl<C: Config + std::marker::Sync + 'static> Server<C, PgDatabase, RedisClient>
         ));
         Router::new()
             .merge(auth::handler::router())
+            .merge(expense::handler::router())
             .layer(TraceLayer::new_for_http())
             .with_state(state)
     }

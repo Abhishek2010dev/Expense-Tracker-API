@@ -12,9 +12,6 @@ use crate::auth::token::error::TokenValidationError;
 
 #[derive(Debug, Error)]
 pub enum AppError {
-    #[error("Not Found: {0}")]
-    NotFound(String),
-
     #[error("Bad Request: {0}")]
     BadRequest(String),
 
@@ -48,7 +45,6 @@ impl IntoResponse for AppError {
             }
             _ => {
                 let (status, error_message) = match &self {
-                    AppError::NotFound(message) => (StatusCode::NOT_FOUND, message),
                     AppError::BadRequest(message) => (StatusCode::BAD_REQUEST, message),
                     AppError::Unauthorized(message) => (StatusCode::UNAUTHORIZED, message),
                     AppError::Conflict(msg) => (StatusCode::CONFLICT, msg),
