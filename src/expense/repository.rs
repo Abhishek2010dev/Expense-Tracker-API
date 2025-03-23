@@ -19,7 +19,7 @@ impl ExpenseRepository {
             r#"
     INSERT INTO expenses (user_id, category, amount, description)
     VALUES ($1, $2, $3, $4)
-    RETURNING id, user_id, category AS "category: _", amount, description, expense_date
+    RETURNING id, user_id, category AS "category: _", amount, description, expense_date;
     "#,
             payload.user_id,
             payload.category as ExpenseCategory,
