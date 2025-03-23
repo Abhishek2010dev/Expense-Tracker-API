@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
@@ -14,12 +15,12 @@ pub enum ExpenseCategory {
     Others,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Expense {
-    id: i32,
-    user_id: i32,
-    category: ExpenseCategory,
-    amount: f64,
-    description: Option<String>,
-    expense_date: NaiveDateTime,
+    pub id: i32,
+    pub user_id: i32,
+    pub category: ExpenseCategory,
+    pub amount: BigDecimal,
+    pub description: Option<String>,
+    pub expense_date: NaiveDateTime,
 }

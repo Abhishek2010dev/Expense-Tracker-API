@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 
 use super::models::ExpenseCategory;
@@ -6,6 +7,6 @@ use super::models::ExpenseCategory;
 pub struct CreateExpensePayload {
     pub user_id: i32,
     pub category: ExpenseCategory,
-    pub amount: f64,
+    pub amount: BigDecimal,
     pub description: Option<String>,
 }
