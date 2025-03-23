@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use sqlx::{PgPool, any};
+use sqlx::PgPool;
 
 use super::{
     models::{Expense, ExpenseCategory},
-    utils::CreateExpensePayload,
+    utils::ExpensePayload,
 };
 
 pub struct ExpenseRepository {
@@ -15,7 +15,7 @@ pub struct ExpenseRepository {
 impl ExpenseRepository {
     pub async fn create_expense(
         &self,
-        payload: CreateExpensePayload,
+        payload: ExpensePayload,
         user_id: i32,
     ) -> anyhow::Result<Expense> {
         sqlx::query_as!(
@@ -35,7 +35,7 @@ impl ExpenseRepository {
         .context("Failed to create expense")
     }
 
-    pub async fn get_expenses(&self, user_id: i32) -> anyhow::Result<Vec<Expense>> {
+    pub async fn find_expenses(&self, user_id: i32) -> anyhow::Result<Vec<Expense>> {
         sqlx::query_as!(
             Expense,
             r#"
@@ -57,7 +57,7 @@ impl ExpenseRepository {
         Ok(())
     }
 
-    pub async fn get_expenses_by_category(
+    pub async fn find_expenses_by_category(
         &self,
         user_id: i32,
         category: ExpenseCategory,
